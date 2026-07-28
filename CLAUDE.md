@@ -59,6 +59,20 @@ All behind one interface: `agent.order(observation) -> int`.
    On step demand, four base-stock agents should show NEAR-ZERO bullwhip. If they don't,
    the ENGINE has a bug. Do not proceed past this until it passes.
 
+   The "expected demand" feeding S_star is a pluggable forecaster (agents/base_stock.py),
+   not a hardcoded value, because the two modes serve different purposes:
+     - KnownDemandForecaster (omniscient, true rate given at construction) — use this for
+       the correctness gate above. It isolates engine bugs from forecast noise: peak order
+       ~3.5x demand, flat by ~week 11.
+     - LocalMovingAverageForecaster (moving average of orders actually received from
+       downstream, no visibility beyond that) — the real Level-0 baseline for later
+       experiments. On its own it is NOT near-zero bullwhip: each echelon's corrective
+       re-ordering after a demand step gets misread upstream as a further demand change,
+       producing genuine cascading amplification (Factory peak ~7.5x demand, doesn't
+       flatten until ~week 28) before eventually settling exactly. That's expected, not a
+       bug — it's what the information-sharing mitigation (switching the forecast source
+       to true customer demand) is there to fix.
+
 2. ANCHOR-AND-ADJUST (Sterman's human model — the headline reproduction):
    O_t = max(0, D_hat + alpha * (S_desired - net_stock - beta * supply_line))
    - D_hat = exponentially smoothed demand, smoothing ~0.3
