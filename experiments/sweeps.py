@@ -34,6 +34,30 @@ def bullwhip_ratio(df: pd.DataFrame) -> float:
     return factory_orders.var() / customer_demand.var()
 
 
+def bullwhip_ratio_post_warmup(df: pd.DataFrame, config: SimulationConfig) -> float:
+    """Var(Factory orders) / Var(customer demand), weeks after warmup only.
+
+    Use this instead of bullwhip_ratio whenever the demand generator has
+    genuine variance throughout the run (e.g. env.demand.make_stochastic_demand)
+    — bullwhip_ratio's full-horizon window is the right choice for the
+    canonical step demand (see its docstring: the step falls inside
+    warmup, so restricting to post-warmup would zero out demand variance
+    entirely) but wrong here: the first ~warmup_weeks are an empty-pipeline
+    startup transient (supply lines and delay queues start at zero/empty)
+    that inflates factory-order variance for reasons unrelated to the
+    demand signal. Confirmed empirically in tests/test_analytical_stochastic.py:
+    the known-demand base-stock benchmark (which should read ~1.0, since
+    order-up-to just relays demand upstream on a delay) reads ~7.4
+    full-horizon vs. ~1.0 post-warmup, across 20 seeds. The two functions
+    are siblings for different demand regimes, not competing defaults —
+    neither should be used as a drop-in replacement for the other.
+    """
+    settled = df[df["week"] > config.warmup_weeks]
+    factory_orders = settled.loc[settled["echelon"] == "Factory", "order_placed"]
+    customer_demand = settled.loc[settled["echelon"] == "Retailer", "order_received"]
+    return factory_orders.var() / customer_demand.var()
+
+
 def run_beta_sweep(
     betas: Iterable[float] = tuple(np.round(np.arange(0.0, 1.01, 0.1), 2)),
     seeds: Iterable[int] = range(20),
