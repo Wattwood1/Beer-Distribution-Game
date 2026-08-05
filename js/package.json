@@ -1,0 +1,6 @@
+{
+  "name": "beer-distribution-game-engine",
+  "private": true,
+  "type": "module",
+  "description": "Plain-JS port of the Python simulation engine, for the browser build. No build step, no dependencies."
+}
