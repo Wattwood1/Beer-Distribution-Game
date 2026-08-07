@@ -55,13 +55,18 @@ export class BeerGameEngine {
     this.cumulativeDeliveredToCustomer = 0;
   }
 
-  step(week) {
+  // Phases 1-4: receive arriving shipment/production, receive the
+  // downstream order (or, for the Retailer, exogenous customer demand),
+  // ship to satisfy backlog as far as inventory allows, and record cost.
+  // None of this depends on any echelon's phase-5 decision, so it can
+  // always run to completion regardless of where each order will come
+  // from -- this is what lets a turn-based caller (js/gameController.js)
+  // pause for a human's decision between this and finishWeek() without
+  // touching the physics at all.
+  beginWeek(week) {
     const n = this.config.nEchelons;
     const states = this.states;
 
-    // Phases 1-2: receive arriving shipment/production, then the
-    // downstream order (or, for the Retailer, exogenous customer
-    // demand), adding it to backlog.
     const receivedStock = new Array(n).fill(0);
     const receivedOrder = new Array(n).fill(0);
     for (let i = 0; i < n; i++) {
@@ -76,7 +81,6 @@ export class BeerGameEngine {
       receivedOrder[i] = orderIn;
     }
 
-    // Phase 3: ship to satisfy backlog as far as inventory allows.
     const shipped = new Array(n).fill(0);
     for (let i = 0; i < n; i++) {
       const st = states[i];
@@ -86,28 +90,37 @@ export class BeerGameEngine {
       shipped[i] = qty;
     }
 
-    // Phase 4: record cost.
     const cost = states.map((st) => this.config.holdingCost * st.inventory + this.config.backlogCost * st.backlog);
 
-    // Phase 5: each agent decides its new order from the post-shipment
-    // state, using only its own observation.
-    const orderPlaced = new Array(n).fill(0);
-    for (let i = 0; i < n; i++) {
-      const st = states[i];
-      const observation = {
-        echelon: ECHELON_NAMES[i],
-        week,
-        inventory: st.inventory,
-        backlog: st.backlog,
-        supplyLine: st.supplyLine,
-        incomingOrder: receivedOrder[i],
-      };
-      orderPlaced[i] = this.agents[i].order(observation);
-    }
+    // The observation every agent (algorithmic or human) receives for its
+    // phase-5 decision -- deliberately just these fields, nothing about
+    // any other echelon. shipmentReceived and cost are additive relative
+    // to the original engine (existing agents ignore both; only the game
+    // controller's restricted player view reads them).
+    const observations = states.map((st, i) => ({
+      echelon: ECHELON_NAMES[i],
+      week,
+      inventory: st.inventory,
+      backlog: st.backlog,
+      supplyLine: st.supplyLine,
+      incomingOrder: receivedOrder[i],
+      shipmentReceived: receivedStock[i],
+      cost: cost[i],
+    }));
 
-    // Phase 6: propagate this week's shipments and orders, and update
-    // supply lines and the two boundary counters. Applied only now, so
-    // nothing pushed here was visible to any agent's observation above.
+    return { receivedStock, receivedOrder, shipped, cost, observations };
+  }
+
+  // Phase 6: propagate this week's shipments and orders, update supply
+  // lines and the two boundary counters, and return the logged rows.
+  // orderPlaced must already be a complete array (one entry per echelon)
+  // -- where each entry came from (an algorithmic agent, or a human via
+  // the game controller) is irrelevant here.
+  finishWeek(week, weekState, orderPlaced) {
+    const n = this.config.nEchelons;
+    const states = this.states;
+    const { receivedStock, receivedOrder, shipped, cost } = weekState;
+
     for (let i = 0; i < n; i++) {
       const st = states[i];
       st.supplyLine += orderPlaced[i];
@@ -140,6 +153,12 @@ export class BeerGameEngine {
       cumulative_produced: this.cumulativeProduced,
       cumulative_delivered_to_customer: this.cumulativeDeliveredToCustomer,
     }));
+  }
+
+  step(week) {
+    const weekState = this.beginWeek(week);
+    const orderPlaced = weekState.observations.map((obs, i) => this.agents[i].order(obs));
+    return this.finishWeek(week, weekState, orderPlaced);
   }
 
   run() {
