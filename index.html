@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Beer Distribution Game</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <h1>Beer Distribution Game</h1>
+</header>
+
+<section id="setup">
+  <h2>New game</h2>
+  <div class="field">
+    <label for="playerEchelon">Play as</label>
+    <select id="playerEchelon">
+      <option>Retailer</option>
+      <option>Wholesaler</option>
+      <option>Distributor</option>
+      <option>Factory</option>
+    </select>
+  </div>
+  <div class="field">
+    <label for="otherPolicy">The other three echelons run</label>
+    <select id="otherPolicy">
+      <option value="anchor_and_adjust">Anchor-and-adjust (human-like ordering)</option>
+      <option value="base_stock">Base-stock (rational benchmark)</option>
+    </select>
+  </div>
+  <button id="continueButton">Continue</button>
+</section>
+
+<section id="howToPlay" hidden>
+  <h2>How to Play</h2>
+  <div id="howToPlayBody"></div>
+  <button id="startButton">Start playing</button>
+</section>
+
+<section id="play" hidden>
+  <h2>Week <span id="weekNumber"></span> / <span id="totalWeeks"></span> — you are the <span id="playerEchelonLabel"></span></h2>
+  <p id="eventNote" class="event-note" hidden></p>
+
+  <div id="costMeter" class="cost-meter">
+    <span class="cost-meter-label">Your cumulative cost</span>
+    <span id="costMeterValue" class="cost-meter-value">$0.00</span>
+  </div>
+
+  <div class="panels">
+    <div class="panel">
+      <h3>Inventory &amp; backlog over time</h3>
+      <canvas id="playerChart" height="220"></canvas>
+    </div>
+
+    <div class="panel">
+      <h3>What's coming</h3>
+      <p id="pipelineSummary" class="pipeline-summary"></p>
+      <p class="pipeline-caption">Zone A — orders placed, still awaiting your supplier's shipping decision:</p>
+      <div id="pipelineZoneA" class="pipeline"></div>
+      <p class="pipeline-caption">Zone B — already shipped to you, confirmed arrival:</p>
+      <div id="pipelineZoneB" class="pipeline"></div>
+      <p class="pipeline-caption">Arriving <strong>this week</strong>: <span id="shipmentArrivingNow"></span></p>
+    </div>
+  </div>
+
+  <div class="panel status-panel">
+    <ul id="statusList"></ul>
+    <p><strong>Your order history:</strong> <span id="orderHistory"></span></p>
+  </div>
+
+  <form id="orderForm" class="order-form">
+    <label for="orderInput">Your order this week:</label>
+    <input type="number" id="orderInput" min="0" step="1" value="8" autocomplete="off">
+    <button type="submit">Submit order (Enter)</button>
+  </form>
+</section>
+
+<section id="reveal" hidden>
+  <h2>Game over</h2>
+
+  <div id="verdict" class="verdict"></div>
+  <div id="comparisonPanel" class="comparison-panel"></div>
+
+  <div id="bullwhipExplanation" class="bullwhip-explanation"></div>
+
+  <h3>The full chain (what you couldn't see during play)</h3>
+  <canvas id="revealChart" height="260"></canvas>
+
+  <details id="fullDataDetails">
+    <summary>Show full 52-week data</summary>
+    <table id="revealTable">
+      <thead><tr><th>Week</th><th>Retailer</th><th>Wholesaler</th><th>Distributor</th><th>Factory</th></tr></thead>
+      <tbody></tbody>
+    </table>
+    <p class="muted">Cells show order placed, per echelon, per week.</p>
+  </details>
+</section>
+
+<!--
+  This page uses native ES modules (the same js/*.js files verified against
+  the Python engine), so it must be served over http:// -- browsers block
+  `import` in module scripts loaded from file://. Run:
+    python3 -m http.server
+  from the repo root, then open http://localhost:8000/ . Opening this file
+  directly (file://) will fail with a CORS/module error.
+-->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<script type="module" src="js/ui.js"></script>
+</body>
+</html>

@@ -1,0 +1,237 @@
+/* Same validated palette used by experiments/figures.py's committed PNGs,
+   reused here for visual consistency across the Python figures and the
+   in-browser game. */
+:root {
+  --surface: #fcfcfb;
+  --page: #f9f9f7;
+  --ink-primary: #0b0b0b;
+  --ink-secondary: #52514e;
+  --ink-muted: #898781;
+  --gridline: #e1e0d9;
+  --axis: #c3c2b7;
+  --blue: #2a78d6;
+  --blue-tint: #eaf2fc;
+  --orange: #eb6834;
+  --aqua: #1baf7a;
+  --yellow: #eda100;
+  --red: #e34948;
+  --violet: #4a3aa7;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  background: var(--page);
+  color: var(--ink-primary);
+  max-width: 920px;
+  margin: 0 auto;
+  padding: 1.5rem;
+  line-height: 1.5;
+}
+
+h1, h2, h3 { line-height: 1.25; }
+section { margin-bottom: 2rem; }
+
+.field { margin-bottom: 0.75rem; }
+.field label { display: inline-block; min-width: 240px; font-weight: 600; }
+
+button, input[type="number"], select {
+  font-size: 1rem;
+  padding: 0.45rem 0.65rem;
+  border: 1px solid var(--axis);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--ink-primary);
+}
+
+button {
+  background: var(--blue);
+  color: white;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+}
+button:hover { filter: brightness(1.08); }
+
+.event-note {
+  background: var(--yellow);
+  color: var(--ink-primary);
+  padding: 0.5rem 0.9rem;
+  border-radius: 6px;
+  font-weight: 600;
+  display: inline-block;
+  margin: 0.5rem 0 0;
+}
+
+.cost-meter {
+  background: var(--surface);
+  border: 1px solid var(--gridline);
+  border-radius: 10px;
+  padding: 1rem 1.5rem;
+  margin: 1rem 0;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  transition: background 0.3s ease, color 0.3s ease;
+}
+.cost-meter-label { font-weight: 600; color: var(--ink-secondary); }
+.cost-meter-value { font-size: 2rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+
+.cost-meter.danger {
+  background: var(--red);
+  animation: pulse 1s ease-in-out infinite;
+}
+.cost-meter.danger .cost-meter-label,
+.cost-meter.danger .cost-meter-value { color: white; }
+
+@keyframes pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(227, 73, 72, 0.45); }
+  50% { box-shadow: 0 0 0 10px rgba(227, 73, 72, 0); }
+}
+
+.panels {
+  display: grid;
+  grid-template-columns: 1.3fr 1fr;
+  gap: 1.25rem;
+}
+@media (max-width: 720px) {
+  .panels { grid-template-columns: 1fr; }
+}
+
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--gridline);
+  border-radius: 10px;
+  padding: 1rem;
+}
+.panel h3 { margin-top: 0; }
+
+.pipeline-summary { font-size: 0.95rem; margin: 0 0 0.5rem; }
+.pipeline-caption { font-size: 0.85rem; color: var(--ink-secondary); margin: 0.75rem 0 0.35rem; }
+
+.pipeline {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  min-height: 2.75rem;
+  align-items: center;
+}
+
+.pipeline-token {
+  border-radius: 6px;
+  padding: 0.35rem 0.55rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  min-width: 4.5rem;
+  text-align: center;
+  line-height: 1.3;
+}
+
+.pipeline-token.zone-a {
+  border: 2px dashed var(--axis);
+  color: var(--ink-secondary);
+  background: transparent;
+}
+
+.pipeline-token.zone-b {
+  border: 2px solid var(--blue);
+  background: var(--blue-tint);
+  color: var(--ink-primary);
+}
+
+.pipeline-empty, .pipeline-note { color: var(--ink-muted); font-size: 0.85rem; font-style: italic; }
+
+.status-panel ul { list-style: none; padding: 0; margin: 0; }
+.status-panel li { padding: 0.3rem 0; border-bottom: 1px solid var(--gridline); }
+.status-panel li:last-child { border-bottom: none; }
+
+.order-form {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 1.25rem;
+  background: var(--surface);
+  border: 1px solid var(--gridline);
+  border-radius: 10px;
+  padding: 1rem;
+}
+.order-form input { width: 6rem; font-size: 1.2rem; }
+
+.comparison-panel {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin: 1rem 0 2rem;
+}
+.comparison-card {
+  flex: 1;
+  min-width: 180px;
+  background: var(--surface);
+  border: 1px solid var(--gridline);
+  border-radius: 10px;
+  padding: 1rem;
+  text-align: center;
+}
+.comparison-card.you { border: 2px solid var(--blue); }
+.comparison-card .label { font-weight: 600; color: var(--ink-secondary); font-size: 0.9rem; }
+.comparison-card .value { font-size: 1.6rem; font-weight: 700; margin-top: 0.35rem; font-variant-numeric: tabular-nums; }
+.comparison-card.winner .value { color: var(--aqua); }
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+  margin-top: 1rem;
+  font-variant-numeric: tabular-nums;
+}
+th, td {
+  border: 1px solid var(--gridline);
+  padding: 0.4rem 0.6rem;
+  text-align: right;
+}
+th:first-child, td:first-child { text-align: left; }
+th { background: var(--page); }
+
+.muted { color: var(--ink-muted); font-size: 0.85rem; }
+
+#howToPlayBody ul { padding-left: 1.25rem; }
+#howToPlayBody li { margin-bottom: 0.6rem; }
+#howToPlayBody li.strategy-hint {
+  font-style: italic;
+  color: var(--ink-secondary);
+}
+
+.verdict {
+  background: var(--surface);
+  border: 1px solid var(--gridline);
+  border-radius: 10px;
+  padding: 1.1rem 1.3rem;
+  margin-bottom: 1rem;
+  font-size: 1.05rem;
+}
+.verdict p { margin: 0 0 0.5rem; }
+.verdict p:last-child { margin-bottom: 0; }
+
+.bullwhip-explanation {
+  background: var(--blue-tint);
+  border: 1px solid var(--gridline);
+  border-radius: 10px;
+  padding: 1.1rem 1.3rem;
+  margin: 1.5rem 0;
+}
+.bullwhip-explanation p { margin: 0 0 0.6rem; }
+.bullwhip-explanation p:last-child { margin-bottom: 0; }
+
+details {
+  margin-top: 1.5rem;
+  background: var(--surface);
+  border: 1px solid var(--gridline);
+  border-radius: 10px;
+  padding: 0.75rem 1rem;
+}
+details summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--ink-secondary);
+}
+details[open] summary { margin-bottom: 0.75rem; }
