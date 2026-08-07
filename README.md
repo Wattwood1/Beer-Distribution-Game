@@ -2,6 +2,18 @@
 
 An instrumented simulation of the Beer Distribution Game (Sterman's classic) that quantifies bullwhip amplification under three ordering policies and tests mitigations.
 
+## ▶ Play the game
+
+This repo now includes a browser-playable version of the Beer Distribution Game — you play one echelon of the supply chain and try to minimize cost, then see the bullwhip effect you couldn't observe during play.
+
+**[▶ Play it live](https://wattwood1.github.io/Beer-Distribution-Game/)**
+
+![Game screenshot](results/figures/game-screenshot.png)
+
+**How the game works:** you pick an echelon (Retailer, Wholesaler, Distributor, or Factory) and see only your own local information — your inventory, backlog, and orders, not the whole chain — the same restriction a real link in a supply chain faces. Each week you decide how much to order; the other three echelons run on the same validated policies used in the research below (base-stock or anchor-and-adjust). At the end, the game reveals the full-chain bullwhip you couldn't see during play and compares your total cost against a rational (base-stock) policy and a human-like (anchor-and-adjust) one at your exact position.
+
+It's built on the same validated engine as the research, not a simplified reimplementation: the JS engine is verified byte-for-byte against the Python engine (52 weeks × 4 echelons × 10 fields, 2,080 values, 0 mismatches), so the game and the research findings below share the same underlying model.
+
 ![Bullwhip ratio vs. beta](results/figures/01_beta_sweep.png)
 
 ## What it does
@@ -83,11 +95,22 @@ experiments/           experiment runners and figure generation
 
 tests/                 conservation, equilibrium, and correctness-gate tests
 results/figures/       committed result figures (PNG)
+
+js/                    the browser game -- a JS port of the engine, verified byte-for-byte against Python
+  engine.js              same six-phase step as env/engine.py (0 mismatches across 2,080 values)
+  round.js                Python-compatible round-half-to-even (a real JS/Python parity risk, not hypothetical)
+  gameController.js       turn-based game loop with a structurally-enforced information restriction
+  comparison.js           end-game comparison vs. base-stock/anchor-and-adjust at the player's position
+  agents/                 JS ports of base-stock and anchor-and-adjust
+  ui.js                   display layer: charts, pipeline visualization, how-to-play and end-screen copy
+index.html, style.css  the playable game page itself (open via `python3 -m http.server`, or the live link above)
 ```
 
 ## How it was built
 
 Built incrementally: the engine was validated by conservation, equilibrium, and analytical (near-zero-bullwhip) tests before any behavioral agent logic was added, so engine bugs and agent behavior were never debugged at the same time. Each subsequent result — the beta sweep, the mitigation, the position-sensitivity experiment — was re-verified under both deterministic step demand and stochastic demand, with a re-established correctness gate for the stochastic case before any stochastic experiment was trusted. Developed with Claude Code.
+
+The browser game (`js/`) followed the same discipline: it's a faithful port of the Python engine, not a simplified reimplementation, and was verified byte-for-byte against the Python engine's own output before any game logic or UI was built on top of it. Only after that gate passed did the turn-based game loop, the information restriction, and the visual/explanation layers get built.
 
 ## Limitations
 
